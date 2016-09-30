@@ -1,0 +1,33 @@
+{
+    "author": "jleuker@gmx.net",
+    "dependencies": {},
+    "keywords": [],
+    "name": "square-banner",
+    "pebble": {
+        "displayName": "Square Banner",
+        "enableMultiJS": false,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/bg",
+                    "name": "IMAGE_BACKGROUND",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "diorite"
+        ],
+        "uuid": "4d8bb74e-431f-4859-8235-bb568bef2b05",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "0.9.0"
+}
