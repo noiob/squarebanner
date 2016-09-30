@@ -11,6 +11,13 @@
         "resources": {
             "media": [
                 {
+                    "file": "images/icon.png",
+                    "menuIcon": true,
+                    "name": "ICON",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                },
+                {
                     "file": "images/bg",
                     "name": "IMAGE_BACKGROUND",
                     "targetPlatforms": null,
