@@ -6,7 +6,7 @@ static TextLayer *s_bottime_layer;
 static TextLayer *s_date_layer;
 static BitmapLayer *s_background_layer;
 static GBitmap *s_background_bitmap;
-
+Layer *window_layer;
 
 void strupper(char *sptr) {
   while (*sptr) {
@@ -15,17 +15,26 @@ void strupper(char *sptr) {
   }
 }
 
-static void update_time() {
+static void update_time(GRect final_unobstructed_screen_area) {
   // Get a tm structure
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
-
+  
+  // Check the available window size
+  GRect bounds = layer_get_bounds(window_layer);
+  
   // Write the current hours and minutes into a buffer
   static char s_buffer_top[8];
   static char s_buffer_bot[8];
-  strftime(s_buffer_top, sizeof(s_buffer_top), clock_is_24h_style() ?
-                                          "%H" : "%I", tick_time);
-  strftime(s_buffer_bot, sizeof(s_buffer_bot), "%M", tick_time);
+  if (final_unobstructed_screen_area.size.h < bounds.size.h) { // QuickView active
+    strftime(s_buffer_top, sizeof(s_buffer_top), clock_is_24h_style() ?
+             "%H:%M" : "%I:%M", tick_time);
+  }
+  else { // normal view
+    strftime(s_buffer_top, sizeof(s_buffer_top), clock_is_24h_style() ?
+             "%H" : "%I", tick_time);
+    strftime(s_buffer_bot, sizeof(s_buffer_bot), "%M", tick_time);
+  }
   static char s_buffer_date[20];
   strftime(s_buffer_date, sizeof(s_buffer_date), "%A, %d", tick_time);
   
@@ -38,12 +47,13 @@ static void update_time() {
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
+  GRect bounds = layer_get_unobstructed_bounds(window_layer);
+  update_time(bounds);
 }
 
 static void main_window_load(Window *window) {
   // Get information about the Window
-  Layer *window_layer = window_get_root_layer(window);
+  window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
   // Create GBitmap
@@ -99,6 +109,9 @@ static void main_window_unload(Window *window) {
   bitmap_layer_destroy(s_background_layer);
 }
 
+static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,void *context) {
+  update_time(final_unobstructed_screen_area);
+}
 
 static void init() {
   // Create main Window element and assign to pointer
@@ -116,10 +129,18 @@ static void init() {
   window_stack_push(s_main_window, true);
 
   // Make sure the time is displayed from the start
-  update_time();
+  window_layer = window_get_root_layer(s_main_window);
+  GRect bounds = layer_get_unobstructed_bounds(window_layer);
+  update_time(bounds);
 
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+  // Subscribe for Quickview changes
+  UnobstructedAreaHandlers handler = {
+    .will_change = prv_unobstructed_will_change
+  };
+  unobstructed_area_service_subscribe(handler, NULL);
 }
 
 static void deinit() {
