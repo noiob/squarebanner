@@ -11,15 +11,15 @@
         "resources": {
             "media": [
                 {
-                    "file": "images/bt-icon.png",
-                    "name": "IMAGE_BT_ICON",
+                    "file": "images/icon.png",
+                    "menuIcon": true,
+                    "name": "ICON",
                     "targetPlatforms": null,
                     "type": "bitmap"
                 },
                 {
-                    "file": "images/icon.png",
-                    "menuIcon": true,
-                    "name": "ICON",
+                    "file": "images/bt-icon.png",
+                    "name": "IMAGE_BT_ICON",
                     "targetPlatforms": null,
                     "type": "bitmap"
                 },
