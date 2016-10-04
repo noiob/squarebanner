@@ -7,6 +7,8 @@ static TextLayer *s_date_layer;
 static BitmapLayer *s_background_layer;
 static GBitmap *s_background_bitmap;
 Layer *window_layer;
+static BitmapLayer *s_background_layer, *s_bt_icon_layer;
+static GBitmap *s_background_bitmap, *s_bt_icon_bitmap;
 
 void strupper(char *sptr) {
   while (*sptr) {
@@ -49,6 +51,20 @@ static void update_time(GRect final_unobstructed_screen_area) {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   GRect bounds = layer_get_unobstructed_bounds(window_layer);
   update_time(bounds);
+}
+
+static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,void *context) {
+  update_time(final_unobstructed_screen_area);
+}
+
+static void bluetooth_callback(bool connected) {
+  // Show icon if disconnected
+  layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
+
+  if(!connected) {
+    // Issue a vibrating alert
+    vibes_double_pulse();
+  }
 }
 
 static void main_window_load(Window *window) {
@@ -94,6 +110,16 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_toptime_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_bottime_layer));
+  
+  // Create the Bluetooth icon GBitmap
+  s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
+
+  // Create the BitmapLayer to display the GBitmap
+  s_bt_icon_layer = bitmap_layer_create(GRect(12, 12, 30, 30));
+  bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
+  // Show the correct state of the BT connection from the start
+  bluetooth_callback(connection_service_peek_pebble_app_connection());
 }
 
 static void main_window_unload(Window *window) {
@@ -107,10 +133,10 @@ static void main_window_unload(Window *window) {
 
   // Destroy BitmapLayer
   bitmap_layer_destroy(s_background_layer);
-}
-
-static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,void *context) {
-  update_time(final_unobstructed_screen_area);
+  
+  // destroy bluetooth icon
+  gbitmap_destroy(s_bt_icon_bitmap);
+  bitmap_layer_destroy(s_bt_icon_layer);
 }
 
 static void init() {
@@ -141,6 +167,11 @@ static void init() {
     .will_change = prv_unobstructed_will_change
   };
   unobstructed_area_service_subscribe(handler, NULL);
+  
+  // Register for Bluetooth connection updates
+  connection_service_subscribe((ConnectionHandlers) {
+    .pebble_app_connection_handler = bluetooth_callback
+  });
 }
 
 static void deinit() {
