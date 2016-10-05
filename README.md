@@ -1,3 +1,9 @@
-# squarebanner
+squarebanner
 
-An attempt at creating a square version of [Banner](https://apps.getpebble.com/en_US/application/560c2671d96cadb52600007f). Vibrate on Bluetooth Disconnect will (hopefully) be added in the future.
+An attempt at creating a square version of Banner. My first watchface, based heavily on Pebble tutorials 😁
+
+Features:
+
+- [x] vibrate + icon on Bluetooth disconnect
+- [x] settings for Bluetooth disconnect behavior (using Clay)
+- [ ] background color palette settings
