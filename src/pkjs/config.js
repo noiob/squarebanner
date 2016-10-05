@@ -27,7 +27,6 @@ module.exports = [
   },
   {
     "type": "section",
-    
     "items": [
       {
         "type": "heading",
