@@ -1,12 +1,22 @@
 {
     "author": "jleuker@gmx.net",
-    "dependencies": {},
+    "dependencies": {
+        "pebble-clay": "^1.0.2"
+    },
     "keywords": [],
     "name": "square-banner",
     "pebble": {
+        "capabilities": [
+            "configurable"
+        ],
         "displayName": "Square Banner",
-        "enableMultiJS": false,
-        "messageKeys": [],
+        "enableMultiJS": true,
+        "messageKeys": [
+            "BackgroundColor",
+            "ForegroundColor",
+            "DisconnectVibrate",
+            "DisconnectIcon"
+        ],
         "projectType": "native",
         "resources": {
             "media": [
