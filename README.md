@@ -6,4 +6,4 @@ An attempt at creating a square version of Banner. My first watchface, based hea
 
 - [x] vibrate + icon on Bluetooth disconnect
 - [x] settings for Bluetooth disconnect behavior (using Clay)
-- [ ] background color palette settings
+- [x] background color palette settings (with limitations I hope to resolve soonish)
