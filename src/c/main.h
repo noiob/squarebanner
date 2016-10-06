@@ -9,7 +9,7 @@ typedef struct ClaySettings {
   GColor ForegroundColor;
   bool DisconnectIcon;
   bool DisconnectVibrate;
-} __attribute__((__packed__)) ClaySettings;
+} __attribute__((__packed__)) ClaySettings; 
 
 static void prv_default_settings();
 static void prv_load_settings();

@@ -12,6 +12,10 @@ module.exports = [
         "defaultValue": "Banner Colors"
       },
       {
+        "type": "text",
+        "defaultValue": "Currently, due to technical limitaions, Banner Colors can't be the same, neither of them can be black. The old background color can't be the new foreground color."
+      },
+      {
         "type": "color",
         "messageKey": "BackgroundColor",
         "defaultValue": "0x0055AA",

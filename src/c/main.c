@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "gbitmap_color_palette_manipulator.h"
 #include "main.h"
 
 static Window *s_main_window;
@@ -11,6 +12,8 @@ Layer *window_layer;
 static BitmapLayer *s_background_layer, *s_bt_icon_layer;
 static GBitmap *s_background_bitmap, *s_bt_icon_bitmap;
 ClaySettings settings;
+GColor OldBackgroundColor;
+GColor OldForegroundColor;
 
 // Initialize the default settings
 static void prv_default_settings() {
@@ -18,6 +21,8 @@ static void prv_default_settings() {
   settings.ForegroundColor = GColorVividCerulean;
   settings.DisconnectIcon = true;
   settings.DisconnectVibrate = true;
+  OldForegroundColor = settings.ForegroundColor;
+  OldBackgroundColor = settings.BackgroundColor;
 }
 
 // Read settings from persistent storage
@@ -78,7 +83,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 // Handle the response from AppMessage
 static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) {
-  printf("AppMessage received");
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "AppMessage received");
   // Background Color
   Tuple *bg_color_t = dict_find(iter, MESSAGE_KEY_BackgroundColor);
   if (bg_color_t) {
@@ -95,26 +100,42 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
   Tuple *disconnect_icon_t = dict_find(iter, MESSAGE_KEY_DisconnectIcon);
   if (disconnect_icon_t) {
     settings.DisconnectIcon = disconnect_icon_t->value->int32 == 1;
-    printf("DisconnectIcon setting changed: %d",settings.DisconnectIcon);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "DisconnectIcon setting changed: %d",settings.DisconnectIcon);
   }
 
   // Disconnect Vibrate
   Tuple *disconnect_vibrate_t = dict_find(iter, MESSAGE_KEY_DisconnectVibrate);
   if (disconnect_vibrate_t) {
     settings.DisconnectVibrate = disconnect_vibrate_t->value->int32 == 1;
-    printf("DisconnectVibrate setting changed: %d",settings.DisconnectVibrate);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "DisconnectVibrate setting changed: %d",settings.DisconnectVibrate);
   }
 
   // Just generally apply all settings for good measure
   //Colors
+  #ifdef PBL_COLOR
+  if (((settings.ForegroundColor.argb & 0x3F) != (settings.BackgroundColor.argb & 0x3F))
+      && ((settings.BackgroundColor.argb & 0x3F) != (GColorBlack.argb & 0x3F))
+      && ((settings.ForegroundColor.argb & 0x3F) != (GColorBlack.argb & 0x3F))
+      && ((settings.ForegroundColor.argb & 0x3F) != (OldBackgroundColor.argb & 0x3F))) {
+    replace_gbitmap_color(OldForegroundColor, settings.ForegroundColor, s_background_bitmap, s_background_layer);
+    replace_gbitmap_color(OldBackgroundColor, settings.BackgroundColor, s_background_bitmap, s_background_layer);
+    OldForegroundColor = settings.ForegroundColor;
+    OldBackgroundColor = settings.BackgroundColor;
+    GRect bounds = layer_get_unobstructed_bounds(window_layer);
+    update_time(bounds);
+  }
+  else {
+    text_layer_set_text(s_date_layer, "ILLEGAL COLORS");
+  }
+  #endif
 
   //DiscIcon
   if (!settings.DisconnectIcon) {
-    printf("Hiding DisconnectIcon");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Hiding DisconnectIcon");
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), true);
   }
   else {
-    printf("Checking wether we need DisconnectIcon");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Checking whether we need DisconnectIcon");
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connection_service_peek_pebble_app_connection());
   }
 
@@ -127,17 +148,17 @@ static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,vo
 }
 
 static void bluetooth_callback(bool connected) {
-  printf("Bluetooth Callback: %d", connected);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Bluetooth Callback: %d", connected);
   if (settings.DisconnectIcon) {
     // Show icon if disconnected
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
-    printf("updating Icon: %d", connected);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "updating Icon: %d", connected);
   }
 
   if(!connected && settings.DisconnectVibrate) {
     // Issue a vibrating alert
     vibes_double_pulse();
-    printf("good vibes");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "good vibes");
   }
 }
 
