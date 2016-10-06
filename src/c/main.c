@@ -83,7 +83,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 // Handle the response from AppMessage
 static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "AppMessage received");
   // Background Color
   Tuple *bg_color_t = dict_find(iter, MESSAGE_KEY_BackgroundColor);
   if (bg_color_t) {
@@ -100,14 +99,12 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
   Tuple *disconnect_icon_t = dict_find(iter, MESSAGE_KEY_DisconnectIcon);
   if (disconnect_icon_t) {
     settings.DisconnectIcon = disconnect_icon_t->value->int32 == 1;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "DisconnectIcon setting changed: %d",settings.DisconnectIcon);
   }
 
   // Disconnect Vibrate
   Tuple *disconnect_vibrate_t = dict_find(iter, MESSAGE_KEY_DisconnectVibrate);
   if (disconnect_vibrate_t) {
     settings.DisconnectVibrate = disconnect_vibrate_t->value->int32 == 1;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "DisconnectVibrate setting changed: %d",settings.DisconnectVibrate);
   }
 
   // Just generally apply all settings for good measure
@@ -131,11 +128,9 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context) 
 
   //DiscIcon
   if (!settings.DisconnectIcon) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Hiding DisconnectIcon");
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), true);
   }
   else {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Checking whether we need DisconnectIcon");
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connection_service_peek_pebble_app_connection());
   }
 
@@ -148,17 +143,14 @@ static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,vo
 }
 
 static void bluetooth_callback(bool connected) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Bluetooth Callback: %d", connected);
   if (settings.DisconnectIcon) {
     // Show icon if disconnected
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "updating Icon: %d", connected);
   }
 
   if(!connected && settings.DisconnectVibrate) {
     // Issue a vibrating alert
     vibes_double_pulse();
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "good vibes");
   }
 }
 
@@ -172,6 +164,15 @@ static void main_window_load(Window *window) {
 
   // Create BitmapLayer to display the GBitmap
   s_background_layer = bitmap_layer_create(bounds);
+  
+  //load settings
+  #ifdef PBL_COLOR
+  // apply colors
+  replace_gbitmap_color(GColorVividCerulean, settings.ForegroundColor, s_background_bitmap, s_background_layer);
+  replace_gbitmap_color(GColorCobaltBlue, settings.BackgroundColor, s_background_bitmap, s_background_layer);
+  OldForegroundColor = settings.ForegroundColor;
+  OldBackgroundColor = settings.BackgroundColor;
+  #endif
 
   // Set the bitmap onto the layer and add to the window
   bitmap_layer_set_bitmap(s_background_layer, s_background_bitmap);
@@ -213,8 +214,14 @@ static void main_window_load(Window *window) {
   s_bt_icon_layer = bitmap_layer_create(GRect(0, 0, 30, 30));
   bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
+  
   // Show the correct state of the BT connection from the start
-  bluetooth_callback(connection_service_peek_pebble_app_connection());
+  if (!settings.DisconnectIcon) {
+    layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), true);
+  }
+  else {
+    layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connection_service_peek_pebble_app_connection());
+  }
 }
 
 static void main_window_unload(Window *window) {

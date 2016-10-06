@@ -17,15 +17,15 @@ module.exports = [
       },
       {
         "type": "color",
-        "messageKey": "BackgroundColor",
-        "defaultValue": "0x0055AA",
-        "label": "Background Color"
-      },
-      {
-        "type": "color",
         "messageKey": "ForegroundColor",
         "defaultValue": "0x00AAFF",
         "label": "Foreground Color"
+      },
+      {
+        "type": "color",
+        "messageKey": "BackgroundColor",
+        "defaultValue": "0x0055AA",
+        "label": "Background Color"
       }
     ]
   },

@@ -2,7 +2,7 @@
 
 #ifdef PBL_COLOR
 
-#define SHOW_APP_LOGS
+//#define SHOW_APP_LOGS
 
 char* get_gbitmapformat_text(GBitmapFormat format){
 	switch (format) {
