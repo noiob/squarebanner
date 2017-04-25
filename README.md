@@ -1,5 +1,7 @@
 # squarebanner
 
+![cover image](https://raw.githubusercontent.com/noiob/squarebanner/master/assets/sqbanner_c.png)
+
 An attempt at creating a square version of Banner. My first watchface, based heavily on Pebble tutorials 😁
 
 ## Features:
